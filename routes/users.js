@@ -34,7 +34,6 @@ router.put("/:id", async (req, res) => {
       );
       res.status(200).json("Account has been updated");
     } catch (err) {
-      console.log("Here ...........");
       return res.status(500).json(err);
     }
   } else {
@@ -67,9 +66,26 @@ router.delete("/:id", async (req, res) => {
 });
 
 //get a user
+router.get("/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    const { password, updatedAt, ...other } = user._doc;
+    res.status(200).json(other);
+  } catch (err) {
+    console.log("here.....");
+    res.status(500).json(err);
+  }
+});
 
 //follow a user
 
+// router.put("/:id/follow", async (req, res) => {
+//   if (req.body.userId !== req.params.id) {
+
+//   } else {
+//     res.status(403).json("you cant follow yourself");
+//   }
+// });
 //unfollow a user
 
 module.exports = router;

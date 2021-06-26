@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 
 //注册
 router.post("/register", async (req, res) => {
+  console.log(req.body);
   try {
     //  加密密码
     const hashedPasswrod = await bcrypt.hash(
@@ -21,7 +22,7 @@ router.post("/register", async (req, res) => {
     // 把用户存入数据库
     const user = await newUser.save();
     res.status(200).json(user);
-  } catch (err) {
+  } catch (error) {
     res.status(500).json(error);
   }
 });
