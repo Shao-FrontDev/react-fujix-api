@@ -98,7 +98,7 @@ router.get("/timeline/:userId", async (req, res) => {
         });
       })
     );
-    res.json(userPosts.concat(...friendPosts));
+    res.status(200).json(userPosts.concat(...friendPosts));
   } catch (err) {
     res.status(500).json(err);
   }
