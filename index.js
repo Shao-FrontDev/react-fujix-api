@@ -25,6 +25,25 @@ mongoose.connect(
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"));
+//允许跨域
+
+
+app.all("*", function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "PUT, POST, GET, DELETE, OPTIONS"
+  );
+  if (req.method == "OPTIONS") {
+    res.send(200);
+  } else {
+    next();
+  }
+});
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
