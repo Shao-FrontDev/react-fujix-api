@@ -80,13 +80,10 @@ router.get("/:id", async (req, res) => {
 router.put("/:id/follow", async (req, res) => {
   if (req.body.userId !== req.params.id) {
     try {
-      console.log(req.body.userId);
-      console.log();
       const user = await User.findById(req.params.id);
       const currentUser = await User.findById(
         req.body.userId
       );
-      // console.log("88line .....", user);
       console.log("89line .....", currentUser);
       if (!user.followers.includes(req.body.userId)) {
         await user.updateOne({
