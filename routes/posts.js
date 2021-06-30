@@ -32,8 +32,6 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-    console.log(post.userId);
-    console.log(req.body.userId);
 
     if (post.userId === req.body.userId) {
       await post.deleteOne();
@@ -50,7 +48,6 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id/like", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-    console.log(post);
     if (!post.likes.includes(req.body.userId)) {
       await post.updateOne({
         $push: {
@@ -107,13 +104,10 @@ router.get("/timeline/:userId", async (req, res) => {
 // get user's all posts
 
 router.get("/profile/:username", async (req, res) => {
-  console.log(req.params.username);
-
   try {
     const user = await User.findOne({
       username: req.params.username,
     });
-    console.log(req.params.username);
     const posts = await Post.find({ userId: user._id });
 
     res.status(200).json(posts);
