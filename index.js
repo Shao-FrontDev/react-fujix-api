@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const path = require("path");
 
 const multer = require("multer");
 
@@ -27,29 +28,28 @@ mongoose.connect(
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"));
-app.use(express.static("public"));
 
-// 磁盘存储引擎
-
-// 文件上传
-
-//允许跨域
 app.all("*", function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild"
+    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With"
   );
   res.header(
     "Access-Control-Allow-Methods",
     "PUT, POST, GET, DELETE, OPTIONS"
   );
   if (req.method == "OPTIONS") {
-    res.send(200);
+    res.sendStatus(200);
   } else {
     next();
   }
 });
+
+app.use(
+  "/images",
+  express.static(path.join(__dirname, "public/images"))
+);
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
@@ -65,16 +65,15 @@ let upload = multer({
       cb(null, "public/images");
     },
     filename: function (req, file, cb) {
-      const changedName =
-        new Date().getTime() + "-" + file.originalname;
-      cb(null, changedName);
+      const { fileName } = req.body;
+      cb(null, fileName);
     },
   }),
 });
 
 app.post(
   "/api/upload",
-  upload.single("image"),
+  upload.single("file"),
   (req, res) => {
     console.log(req.file);
     try {

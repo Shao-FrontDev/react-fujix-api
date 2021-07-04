@@ -30,6 +30,8 @@ router.put("/:id", async (req, res) => {
 });
 //delete a post
 router.delete("/:id", async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+
   try {
     const post = await Post.findById(req.params.id);
 
@@ -72,7 +74,6 @@ router.put("/:id/like", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    console.log(req.params.id);
     const post = await Post.findOne({ _id: req.params.id });
     res.status(200).json(post);
   } catch (error) {
@@ -99,6 +100,51 @@ router.get("/timeline/:userId", async (req, res) => {
     res.status(200).json(userPosts.concat(...friendPosts));
   } catch (err) {
     res.status(500).json(err);
+  }
+});
+
+// 获取互相关注人的信息
+/* 
+  1.获得自己的 followings 
+  2.看看自己的followings 的人当中的followinds 有没有自己 如果有则判断为互相关注的人。
+
+
+  3.收集这里面所有人的ID，然后查找所有人的Posts，这里的Posts 就是朋友圈想要展示的内容
+*/
+
+router.get("/friends/:userId", async (req, res) => {
+  try {
+    const currentUser = await User.findById(
+      req.params.userId
+    );
+    let allFriendsId = [currentUser._id];
+
+
+    //  自己的所有关注的人
+    const allFriendsFollowings = await Promise.all(
+      [...currentUser.followings].map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+
+    // 自己所有关注的人之中看看他们有没有关注自己，如果有就先放到一个数组中去。
+    allFriendsFollowings.forEach((person) => {
+      if (person.followings.includes(currentUser._id)) {
+        allFriendsId.push(person._id);
+      }
+    });
+
+
+    // 互为好友的人的Posts 也就是朋友圈。
+    const allFriendsPosts = await Promise.all(
+      allFriendsId.map((personId) => {
+        return Post.find({ userId: personId });
+      })
+    );
+
+    res.status(200).json(allFriendsPosts);
+  } catch (error) {
+    console.log(error);
   }
 });
 

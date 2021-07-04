@@ -88,6 +88,28 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//get users
+router.get("/friends/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    console.log(user);
+    const friends = await Promise.all(
+      user.followings.map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+    let friendList = [];
+    friends.map((friend) => {
+      console.log(friend);
+      const { _id, username, profilePicture } = friend;
+      friendList.push({ _id, username, profilePicture });
+    });
+    res.status(200).json(friendList);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 //follow a user
 
 router.put("/:id/follow", async (req, res) => {
@@ -121,18 +143,23 @@ router.put("/:id/follow", async (req, res) => {
 //unfollow a user
 
 router.put("/:id/unfollow", async (req, res) => {
+  //防止自己关注自己
   if (req.body.userId !== req.params.id) {
     try {
+      // 找到要取消关注的用户
       const user = await User.findById(req.params.id);
+      // 在数据库找到自己
       const currentUser = await User.findById(
         req.body.userId
       );
+
+      // 条件为真，说明已经关注了想要取消关注的用户
       if (user.followers.includes(req.body.userId)) {
         await user.updateOne({
           $pull: { followers: req.body.userId },
         });
         await currentUser.updateOne({
-          $pull: { followings: req.body.userId },
+          $pull: { followings: req.params.id },
         });
         res.status(200).json("user have been unfollowed");
       } else {
