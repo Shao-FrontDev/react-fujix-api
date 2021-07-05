@@ -75,7 +75,6 @@ app.post(
   "/api/upload",
   upload.single("file"),
   (req, res) => {
-    console.log(req.file);
     try {
       return res.status(200).json("图片上传成功");
     } catch (error) {

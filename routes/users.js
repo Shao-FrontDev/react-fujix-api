@@ -88,7 +88,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-//get users
+//我所关注的人
 router.get("/friends/:userId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -172,6 +172,49 @@ router.put("/:id/unfollow", async (req, res) => {
     }
   } else {
     res.status(403).json("you cant unfollow yourself");
+  }
+});
+
+//好友圈
+router.get("/circle/:userId", async (req, res) => {
+  try {
+    const currentUser = await User.findById(
+      req.params.userId
+    );
+    let allFriendsId = [];
+
+    //  自己的所有关注的人
+    const allFriendsFollowings = await Promise.all(
+      [...currentUser.followings].map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+
+    // 自己所有关注的人之中看看他们有没有关注自己，如果有就先放到一个数组中去。
+    allFriendsFollowings.forEach((person) => {
+      if (person.followings.includes(currentUser._id)) {
+        allFriendsId.push(person._id);
+      }
+    });
+
+    const friends = await Promise.all(
+      allFriendsId.map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+
+    let friendList = [];
+
+    friends.map((friend) => {
+      const { _id, username, profilePicture } = friend;
+      friendList.push({ _id, username, profilePicture });
+    });
+
+    //
+
+    res.status(200).json(friendList);
+  } catch (error) {
+    console.log(error);
   }
 });
 
