@@ -29,6 +29,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"));
 
+//跨域使用;
 app.all("*", function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -51,13 +52,18 @@ app.use(
   express.static(path.join(__dirname, "public/images"))
 );
 
+app.use(
+  "/",
+  express.static(path.join(__dirname, "public/home"))
+);
+
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postRouter);
 
-app.get("/", (req, res) => {
-  res.send("Welcome to homepage");
-});
+// app.get("/", (req, res) => {
+//   res.send("Welcome to homepage");
+// });
 
 let upload = multer({
   storage: multer.diskStorage({
