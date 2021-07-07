@@ -44,7 +44,7 @@ router.put("/:id", async (req, res) => {
           $set: req.body,
         }
       );
-      res.status(200).json("Account has been updated");
+      res.status(200).json(user);
     } catch (err) {
       return res.status(500).json(err);
     }
@@ -92,7 +92,6 @@ router.get("/:id", async (req, res) => {
 router.get("/friends/:userId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
-    console.log(user);
     const friends = await Promise.all(
       user.followings.map((friendId) => {
         return User.findById(friendId);
@@ -100,7 +99,6 @@ router.get("/friends/:userId", async (req, res) => {
     );
     let friendList = [];
     friends.map((friend) => {
-      console.log(friend);
       const { _id, username, profilePicture } = friend;
       friendList.push({ _id, username, profilePicture });
     });

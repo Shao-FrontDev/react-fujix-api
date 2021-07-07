@@ -81,6 +81,18 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+//get a user portfolio
+router.get("/portfolio/:userId", async (req, res) => {
+  try {
+    const posts = await Post.find({
+      userId: req.params.userId,
+    });
+    res.status(200).json(posts);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 //get timeline posts
 router.get("/timeline/:userId", async (req, res) => {
   try {
@@ -119,7 +131,6 @@ router.get("/friends/:userId", async (req, res) => {
     );
     let allFriendsId = [currentUser._id];
 
-
     //  自己的所有关注的人
     const allFriendsFollowings = await Promise.all(
       [...currentUser.followings].map((friendId) => {
@@ -133,7 +144,6 @@ router.get("/friends/:userId", async (req, res) => {
         allFriendsId.push(person._id);
       }
     });
-
 
     // 互为好友的人的Posts 也就是朋友圈。
     const allFriendsPosts = await Promise.all(
