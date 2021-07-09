@@ -14,7 +14,7 @@ const postRouter = require("./routes/posts");
 
 dotenv.config();
 mongoose.connect(
-  process.env.MONGO_URL,
+  "mongodb://localhost:27017/social",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
