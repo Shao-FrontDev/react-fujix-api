@@ -1,219 +1,221 @@
-const router = require("express").Router();
-const bcrypt = require("bcryptjs");
-const User = require("../models/User");
+module.exports = (app) => {
+  const router = require("express").Router();
+  const bcrypt = require("bcryptjs");
+  const User = require("../models/User");
 
-//get a user
+  //get a user
 
-router.get("/", async (req, res) => {
-  const userId = req.query.userId;
-  const username = req.query.username;
+  router.get("/", async (req, res) => {
+    const userId = req.query.userId;
+    const username = req.query.username;
 
-  try {
-    const user = userId
-      ? await User.findById(userId)
-      : await User.findOne({ username: username });
-    const { password, updatedAt, ...other } = user._doc;
-    res.status(200).json(other);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
+    try {
+      const user = userId
+        ? await User.findById(userId)
+        : await User.findOne({ username: username });
+      const { password, updatedAt, ...other } = user._doc;
+      res.status(200).json(other);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  });
 
-//update user
-router.put("/:id", async (req, res) => {
-  //用户自己更改或者是管理员更改
-  if (
-    req.body.userId === req.params.id ||
-    req.body.isAdmin
-  ) {
-    if (req.body.password) {
+  //update user
+  router.put("/:id", async (req, res) => {
+    //用户自己更改或者是管理员更改
+    if (
+      req.body.userId === req.params.id ||
+      req.body.isAdmin
+    ) {
+      if (req.body.password) {
+        try {
+          req.body.password = await bcrypt.hash(
+            req.body.password,
+            10
+          );
+        } catch (err) {
+          return res.status(500).json(err);
+        }
+      }
+
       try {
-        req.body.password = await bcrypt.hash(
-          req.body.password,
-          10
+        const user = await User.findByIdAndUpdate(
+          req.params.id,
+          {
+            $set: req.body,
+          }
         );
+        res.status(200).json(user);
       } catch (err) {
         return res.status(500).json(err);
       }
+    } else {
+      return res
+        .status(403)
+        .json("You can update only your account!");
     }
+  });
 
+  //delete user
+  router.delete("/:id", async (req, res) => {
+    //用户自己更改或者是管理员更改
+    if (
+      req.body.userId === req.params.id ||
+      req.body.isAdmin
+    ) {
+      try {
+        const user = await User.findByIdAndDelete({
+          _id: req.params.id,
+        });
+        res.status(200).json("Account has been deleted");
+      } catch (err) {
+        return res.status(500).json(err);
+      }
+    } else {
+      return res
+        .status(403)
+        .json("You can delete only your account!");
+    }
+  });
+
+  //get a user
+  router.get("/:id", async (req, res) => {
     try {
-      const user = await User.findByIdAndUpdate(
-        req.params.id,
-        {
-          $set: req.body,
-        }
-      );
-      res.status(200).json(user);
+      const user = await User.findById(req.params.id);
+      const { password, updatedAt, ...other } = user._doc;
+      res.status(200).json(other);
     } catch (err) {
-      return res.status(500).json(err);
+      res.status(500).json(err);
     }
-  } else {
-    return res
-      .status(403)
-      .json("You can update only your account!");
-  }
-});
+  });
 
-//delete user
-router.delete("/:id", async (req, res) => {
-  //用户自己更改或者是管理员更改
-  if (
-    req.body.userId === req.params.id ||
-    req.body.isAdmin
-  ) {
+  //我所关注的人
+  router.get("/friends/:userId", async (req, res) => {
     try {
-      const user = await User.findByIdAndDelete({
-        _id: req.params.id,
+      const user = await User.findById(req.params.userId);
+      const friends = await Promise.all(
+        user.followings.map((friendId) => {
+          return User.findById(friendId);
+        })
+      );
+      let friendList = [];
+      friends.map((friend) => {
+        const { _id, username, profilePicture } = friend;
+        friendList.push({ _id, username, profilePicture });
       });
-      res.status(200).json("Account has been deleted");
-    } catch (err) {
-      return res.status(500).json(err);
+      res.status(200).json(friendList);
+    } catch (error) {
+      console.log(error);
     }
-  } else {
-    return res
-      .status(403)
-      .json("You can delete only your account!");
-  }
-});
+  });
 
-//get a user
-router.get("/:id", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    const { password, updatedAt, ...other } = user._doc;
-    res.status(200).json(other);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
+  //follow a user
 
-//我所关注的人
-router.get("/friends/:userId", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    const friends = await Promise.all(
-      user.followings.map((friendId) => {
-        return User.findById(friendId);
-      })
-    );
-    let friendList = [];
-    friends.map((friend) => {
-      const { _id, username, profilePicture } = friend;
-      friendList.push({ _id, username, profilePicture });
-    });
-    res.status(200).json(friendList);
-  } catch (error) {
-    console.log(error);
-  }
-});
+  router.put("/:id/follow", async (req, res) => {
+    if (req.body.userId !== req.params.id) {
+      try {
+        const user = await User.findById(req.params.id);
+        const currentUser = await User.findById(
+          req.body.userId
+        );
+        if (!user.followers.includes(req.body.userId)) {
+          await user.updateOne({
+            $push: { followers: req.body.userId },
+          });
+          await currentUser.updateOne({
+            $push: { followings: req.params.id },
+          });
+          res.status(200).json("user have been followed");
+        } else {
+          res
+            .status(403)
+            .json("you allready follow this user");
+        }
+      } catch (err) {
+        res.status(500).json(err);
+      }
+    } else {
+      res.status(403).json("you cant follow yourself");
+    }
+  });
 
-//follow a user
+  //unfollow a user
 
-router.put("/:id/follow", async (req, res) => {
-  if (req.body.userId !== req.params.id) {
+  router.put("/:id/unfollow", async (req, res) => {
+    //防止自己关注自己
+    if (req.body.userId !== req.params.id) {
+      try {
+        // 找到要取消关注的用户
+        const user = await User.findById(req.params.id);
+        // 在数据库找到自己
+        const currentUser = await User.findById(
+          req.body.userId
+        );
+
+        // 条件为真，说明已经关注了想要取消关注的用户
+        if (user.followers.includes(req.body.userId)) {
+          await user.updateOne({
+            $pull: { followers: req.body.userId },
+          });
+          await currentUser.updateOne({
+            $pull: { followings: req.params.id },
+          });
+          res.status(200).json("user have been unfollowed");
+        } else {
+          res
+            .status(403)
+            .json("you allready follow this user");
+        }
+      } catch (err) {
+        res.status(500).json(err);
+      }
+    } else {
+      res.status(403).json("you cant unfollow yourself");
+    }
+  });
+
+  //好友圈
+  router.get("/circle/:userId", async (req, res) => {
     try {
-      const user = await User.findById(req.params.id);
       const currentUser = await User.findById(
-        req.body.userId
+        req.params.userId
       );
-      if (!user.followers.includes(req.body.userId)) {
-        await user.updateOne({
-          $push: { followers: req.body.userId },
-        });
-        await currentUser.updateOne({
-          $push: { followings: req.params.id },
-        });
-        res.status(200).json("user have been followed");
-      } else {
-        res
-          .status(403)
-          .json("you allready follow this user");
-      }
-    } catch (err) {
-      res.status(500).json(err);
-    }
-  } else {
-    res.status(403).json("you cant follow yourself");
-  }
-});
+      let allFriendsId = [];
 
-//unfollow a user
-
-router.put("/:id/unfollow", async (req, res) => {
-  //防止自己关注自己
-  if (req.body.userId !== req.params.id) {
-    try {
-      // 找到要取消关注的用户
-      const user = await User.findById(req.params.id);
-      // 在数据库找到自己
-      const currentUser = await User.findById(
-        req.body.userId
+      //  自己的所有关注的人
+      const allFriendsFollowings = await Promise.all(
+        [...currentUser.followings].map((friendId) => {
+          return User.findById(friendId);
+        })
       );
 
-      // 条件为真，说明已经关注了想要取消关注的用户
-      if (user.followers.includes(req.body.userId)) {
-        await user.updateOne({
-          $pull: { followers: req.body.userId },
-        });
-        await currentUser.updateOne({
-          $pull: { followings: req.params.id },
-        });
-        res.status(200).json("user have been unfollowed");
-      } else {
-        res
-          .status(403)
-          .json("you allready follow this user");
-      }
-    } catch (err) {
-      res.status(500).json(err);
+      // 自己所有关注的人之中看看他们有没有关注自己，如果有就先放到一个数组中去。
+      allFriendsFollowings.forEach((person) => {
+        if (person.followings.includes(currentUser._id)) {
+          allFriendsId.push(person._id);
+        }
+      });
+
+      const friends = await Promise.all(
+        allFriendsId.map((friendId) => {
+          return User.findById(friendId);
+        })
+      );
+
+      let friendList = [];
+
+      friends.map((friend) => {
+        const { _id, username, profilePicture } = friend;
+        friendList.push({ _id, username, profilePicture });
+      });
+
+      //
+
+      res.status(200).json(friendList);
+    } catch (error) {
+      console.log(error);
     }
-  } else {
-    res.status(403).json("you cant unfollow yourself");
-  }
-});
+  });
 
-//好友圈
-router.get("/circle/:userId", async (req, res) => {
-  try {
-    const currentUser = await User.findById(
-      req.params.userId
-    );
-    let allFriendsId = [];
-
-    //  自己的所有关注的人
-    const allFriendsFollowings = await Promise.all(
-      [...currentUser.followings].map((friendId) => {
-        return User.findById(friendId);
-      })
-    );
-
-    // 自己所有关注的人之中看看他们有没有关注自己，如果有就先放到一个数组中去。
-    allFriendsFollowings.forEach((person) => {
-      if (person.followings.includes(currentUser._id)) {
-        allFriendsId.push(person._id);
-      }
-    });
-
-    const friends = await Promise.all(
-      allFriendsId.map((friendId) => {
-        return User.findById(friendId);
-      })
-    );
-
-    let friendList = [];
-
-    friends.map((friend) => {
-      const { _id, username, profilePicture } = friend;
-      friendList.push({ _id, username, profilePicture });
-    });
-
-    //
-
-    res.status(200).json(friendList);
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-module.exports = router;
+  app.use("/api/users", router);
+};

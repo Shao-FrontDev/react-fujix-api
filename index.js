@@ -14,10 +14,11 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("common"));
 
-const userRouter = require("./routes/users");
+//子路由
+require("./routes/users")(app);
 require("./routes/auth")(app);
-const postRouter = require("./routes/posts");
-
+require("./routes/posts");
+app;
 dotenv.config();
 mongoose.connect(
   "mongodb://localhost:27017/social",
@@ -40,6 +41,9 @@ app.use(morgan("common"));
 
 console.log("restart ................");
 
+
+
+//静态文件托管
 app.use(
   "/images",
   express.static(path.join(__dirname, "public/images"))
@@ -50,9 +54,7 @@ app.use(
   express.static(path.join(__dirname, "public/home"))
 );
 
-app.use("/api/users", userRouter);
-// app.use("/api/auth", authRouter);
-app.use("/api/posts", postRouter);
+// app.use("/api/posts", postRouter);
 
 // app.get("/", (req, res) => {
 //   res.send("Welcome to homepage");
