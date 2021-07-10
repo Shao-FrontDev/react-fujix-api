@@ -32,13 +32,23 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({
       email: req.body.email,
     });
-    !user && res.status(404).json("user not found");
+
+    // !user && res.status(404).json("user not found");
+
+    if (!user) {
+      return res.status(422).send({
+        message: "用户不存在",
+      });
+    }
     const vaildPassword = await bcrypt.compare(
       req.body.password,
       user.password
     );
-    !vaildPassword &&
-      res.status(400).json("password wrong");
+
+    if (!vaildPassword) {
+      return res.status(422).json({ message: "密码错误" });
+    }
+
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json(error);
