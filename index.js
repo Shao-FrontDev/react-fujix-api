@@ -7,6 +7,8 @@ const morgan = require("morgan"); // 日记
 const path = require("path");
 const cors = require("cors");
 
+const authMiddleware = require("./middlerware/auth");
+
 const config = require("./config");
 
 const multer = require("multer");
@@ -79,6 +81,7 @@ let upload = multer({
 
 app.post(
   "/api/upload",
+  authMiddleware(),
   upload.single("file"),
   (req, res) => {
     try {

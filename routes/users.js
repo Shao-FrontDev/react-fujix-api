@@ -76,7 +76,7 @@ module.exports = (app) => {
         .status(403)
         .json("You can delete only your account!");
     }
-  });
+  }); 
 
   //get a user
   router.get("/:id", async (req, res) => {

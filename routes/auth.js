@@ -31,13 +31,11 @@ module.exports = (app) => {
 
   // 登陆
   router.post("/login", async (req, res) => {
-    console.log(req.body);
     const { email, password } = req.body;
     try {
       const user = await User.findOne({
         email: email,
       });
-
       assert(user, 422, "用户不存在");
 
       const vaildPassword = await bcrypt.compare(
@@ -52,8 +50,9 @@ module.exports = (app) => {
         { id: user._id },
         process.env.JWT_SECRET_KEY
       );
-      console.log("token", token);
-      res.status(200).json({ token });
+      // const { password, updatedAt, ...other } = user._doc;
+
+      res.status(200).json({ token, user });
     } catch (error) {
       console.log("after");
       res.status(500).json(error);
