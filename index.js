@@ -7,6 +7,8 @@ const morgan = require("morgan"); // 日记
 const path = require("path");
 const cors = require("cors");
 
+const config = require("./config");
+
 const multer = require("multer");
 const MAO = require("multer-aliyun-oss");
 
@@ -17,8 +19,7 @@ app.use(morgan("common"));
 //子路由
 require("./routes/users")(app);
 require("./routes/auth")(app);
-require("./routes/posts");
-app;
+require("./routes/posts")(app);
 dotenv.config();
 mongoose.connect(
   "mongodb://localhost:27017/social",
@@ -31,8 +32,6 @@ mongoose.connect(
   }
 );
 
-app.set("secret", "rehksdfhajkshfrsdf");
-
 //mindleware
 app.use(express.json());
 app.use(cors());
@@ -40,8 +39,6 @@ app.use(morgan("common"));
 // app.use(helmet());
 
 console.log("restart ................");
-
-
 
 //静态文件托管
 app.use(

@@ -2,6 +2,7 @@ module.exports = (app) => {
   const router = require("express").Router();
   const Post = require("../models/Post");
   const User = require("../models/User");
+  const authMiddleware = require("./../middlerware/auth");
 
   //create a post
   router.post("/", async (req, res) => {
@@ -101,14 +102,16 @@ module.exports = (app) => {
   });
 
   //get timeline posts
-  router.get("/timeline/:userId", async (req, res) => {
+
+  router.get("/timeline/now", async (req, res) => {
     try {
-      const currentUser = await User.findById(
-        req.params.userId
-      );
+      const currentUser = await User.findById(req.user._id);
+
       const userPosts = await Post.find({
-        userId: currentUser._id,
+        userId: req.user._id,
       });
+
+      console.log("userPosts", userPosts);
       const friendPosts = await Promise.all(
         currentUser.followings.map((friendId) => {
           return Post.find({
@@ -116,6 +119,9 @@ module.exports = (app) => {
           });
         })
       );
+
+      console.log("userPosts", friendPosts);
+
       res
         .status(200)
         .json(userPosts.concat(...friendPosts));
@@ -182,7 +188,6 @@ module.exports = (app) => {
     }
   });
 
-  module.exports = router;
-
-  app.use("/api/posts", router);
+  // app.use("/api/posts");
+  app.use("/api/posts", authMiddleware(), router);
 };

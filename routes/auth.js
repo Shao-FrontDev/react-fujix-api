@@ -2,8 +2,10 @@ module.exports = (app) => {
   const router = require("express").Router();
   const User = require("../models/User");
   const bcrypt = require("bcryptjs");
-
+  const assert = require("http-assert");
+  const config = require("./../config");
   //注册
+
   router.post("/register", async (req, res) => {
     try {
       //  加密密码
@@ -36,30 +38,22 @@ module.exports = (app) => {
         email: email,
       });
 
-      if (!user) {
-        return res.status(422).send({
-          message: "用户不存在",
-        });
-      }
+      assert(user, 422, "用户不存在");
+
       const vaildPassword = await bcrypt.compare(
         password,
         user.password
       );
 
-      if (!vaildPassword) {
-        return res
-          .status(422)
-          .json({ message: "密码错误" });
-      }
+      assert(vaildPassword, 422, "密码错误");
 
       const jwt = require("jsonwebtoken");
-      console.log("here", app.get("secret"));
       const token = jwt.sign(
         { id: user._id },
-        app.get("secret")
+        process.env.JWT_SECRET_KEY
       );
       console.log("token", token);
-      res.status(200).send({ token });
+      res.status(200).json({ token });
     } catch (error) {
       console.log("after");
       res.status(500).json(error);
@@ -69,5 +63,13 @@ module.exports = (app) => {
 
   */
   });
+
+  // app.use(async (err, req, res, next) => {
+  //   console.log("...");
+  //   res.status(500).send({
+  //     message: err.message,
+  //   });
+  // });
+
   app.use("/api/auth", router);
 };
