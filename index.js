@@ -40,8 +40,6 @@ app.use(cors());
 app.use(morgan("common"));
 // app.use(helmet());
 
-console.log("restart ................");
-
 //静态文件托管
 app.use(
   "/images",
@@ -94,8 +92,8 @@ app.post(
   }
 );
 
-app.listen(8800, () => {
-  console.log("start to listen in 8800");
+app.listen(3000, () => {
+  console.log("start to listen in 3000");
 });
 
 module.exports = app;
