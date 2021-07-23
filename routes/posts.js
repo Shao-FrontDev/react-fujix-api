@@ -176,6 +176,8 @@ module.exports = (app) => {
   // get user's all posts
 
   router.get("/profile/:username", async (req, res) => {
+
+    console.log('发起了新请求')
     try {
       const user = await User.findOne({
         username: req.params.username,
