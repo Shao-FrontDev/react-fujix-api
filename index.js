@@ -9,6 +9,7 @@ const cors = require("cors");
 
 const authMiddleware = require("./middlerware/auth");
 
+dotenv.config();
 const config = require("./config");
 
 const multer = require("multer");
@@ -22,7 +23,6 @@ app.use(morgan("common"));
 require("./routes/users")(app);
 require("./routes/auth")(app);
 require("./routes/posts")(app);
-dotenv.config();
 mongoose.connect(
   "mongodb://localhost:27017/social",
   {
@@ -56,6 +56,12 @@ app.use(
 // app.get("/", (req, res) => {
 //   res.send("Welcome to homepage");
 // });
+config.ALIYUN_ACCESSKEY_ID;
+
+console.log(
+  config.ALIYUN_ACCESSKEY_ID,
+  config.ALIYUN_ACCESSKET_SECRET
+);
 
 let upload = multer({
   // storage: multer.diskStorage({
@@ -70,8 +76,8 @@ let upload = multer({
   storage: MAO({
     config: {
       region: "oss-cn-shenzhen",
-      accessKeyId: "LTAI5tCEx9UPFvBk8afgpb4w",
-      accessKeySecret: "JcT86VGbcD1bOaM8gsrQDJpcqjpDXt",
+      accessKeyId: config.ALIYUN_ACCESSKEY_ID,
+      accessKeySecret: config.ALIYUN_ACCESSKET_SECRET,
       bucket: "fujix",
     },
   }),

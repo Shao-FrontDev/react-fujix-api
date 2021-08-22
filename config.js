@@ -1,5 +1,11 @@
 const jwtSecretKey = process.env.JWT_SECRET_KEY;
 
+const ALIYUN_ACCESSKEY_ID = process.env.ALIYUN_ACCESSKEY_ID;
+const ALIYUN_ACCESSKET_SECRET =
+  process.env.ALIYUN_ACCESSKET_SECRET;
+
 module.exports = {
   jwtSecretKey: jwtSecretKey,
+  ALIYUN_ACCESSKEY_ID: ALIYUN_ACCESSKEY_ID,
+  ALIYUN_ACCESSKET_SECRET: ALIYUN_ACCESSKET_SECRET,
 };
