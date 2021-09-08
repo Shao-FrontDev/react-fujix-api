@@ -3,7 +3,6 @@ module.exports = (app) => {
   const User = require("../models/User");
   const bcrypt = require("bcryptjs");
   const assert = require("http-assert");
-  const config = require("./../config");
   //注册
 
   router.post("/register", async (req, res) => {
@@ -49,6 +48,7 @@ module.exports = (app) => {
       const token = jwt.sign(
         { id: user._id },
         process.env.JWT_SECRET_KEY
+        // "hellworld"
       );
       // const { password, updatedAt, ...other } = user._doc;
 
