@@ -58,11 +58,6 @@ app.use(
 // });
 config.ALIYUN_ACCESSKEY_ID;
 
-console.log(
-  config.ALIYUN_ACCESSKEY_ID,
-  config.ALIYUN_ACCESSKET_SECRET
-);
-
 let upload = multer({
   // storage: multer.diskStorage({
   //   destination: function (req, file, cb) {
@@ -76,8 +71,8 @@ let upload = multer({
   storage: MAO({
     config: {
       region: "oss-cn-shenzhen",
-      accessKeyId: config.ALIYUN_ACCESSKEY_ID,
-      accessKeySecret: config.ALIYUN_ACCESSKET_SECRET,
+      accessKeyId: "LTAI5tCEx9UPFvBk8afgpb4w",
+      accessKeySecret: "JcT86VGbcD1bOaM8gsrQDJpcqjpDXt",
       bucket: "fujix",
     },
   }),
